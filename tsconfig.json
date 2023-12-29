@@ -1,33 +1,32 @@
 {
-  "$schema": "https://json.schemastore.org/tsconfig",
-  "display": "Default",
+  "compileOnSave": true,
   "compilerOptions": {
-    "jsx": "react-jsx",
-    "lib": [
-      "ESNext",
-      "DOM"
-    ],
-    "module": "ESNext",
-    "target": "es6",
-    "composite": false,
-    "declaration": true,
-    "declarationMap": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "inlineSources": false,
-    "isolatedModules": true,
-    "moduleResolution": "node",
+    "baseUrl": "./",
+    "outDir": "./",
+    "target": "es2017",
+    "module": "NodeNext",
+    "moduleResolution": "nodenext",
+    "strict": false,
+    "noImplicitAny": false,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "allowJs": false,
+    "pretty": true,
+    "noEmitOnError": false,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "preserveWatchOutput": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "strictPropertyInitialization": false,
+    "noFallthroughCasesInSwitch": true,
     "skipLibCheck": true,
-    "strict": true
+    "skipDefaultLibCheck": true,
+    "inlineSourceMap": true,
+    "esModuleInterop": true,
+    "importHelpers": true,
+    "resolveJsonModule": true,
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx"
-  ],
   "exclude": [
-    "node_modules"
+    "node_modules*"
   ]
 }
