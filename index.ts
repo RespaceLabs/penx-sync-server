@@ -7,13 +7,7 @@ import cors from "cors";
 
 const port = process.env.PORT || 5001;
 
-console.log("===========process.env.REDIS_PASSWORD:", process.env.REDIS_PORT);
-
-const redis = new Redis({
-  host: process.env.REDIS_HOST!,
-  port: Number(process.env.REDIS_PORT!),
-  password: process.env.REDIS_PASSWORD!,
-});
+const redis = new Redis(process.env.REDIS_URL!);
 
 async function main() {
   const app = express();
