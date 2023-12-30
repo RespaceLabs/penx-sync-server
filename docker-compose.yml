@@ -1,0 +1,10 @@
+version: "3.9"
+services:
+  penx-sse-server:
+    container_name: penx-sse-server
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=production
+      - REDIS_URL=redis://:Ziyi007@43.154.135.183:6379

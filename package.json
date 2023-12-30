@@ -4,6 +4,7 @@
   "scripts": {
     "dev": "cross-env NODE_ENV=development tsx index.ts",
     "build": "tsc",
+    "deploy": "docker-compose -p penx-sse-server -f docker-compose.yml up --build -d",
     "start": "node index.js"
   },
   "devDependencies": {
