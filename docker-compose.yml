@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - '5001:5001'
+      - '4000:4000'
     environment:
       - NODE_ENV=production
       - REDIS_URL=redis://:Ziyi007@43.154.135.183:6379
