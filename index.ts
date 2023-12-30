@@ -4,6 +4,9 @@ import express from "express";
 import Redis from "ioredis";
 import bodyParser from "body-parser";
 import cors from "cors";
+import { EventEmitter } from "events";
+
+EventEmitter.defaultMaxListeners = 100;
 
 const port = process.env.PORT || 4000;
 
@@ -34,6 +37,8 @@ async function main() {
     });
 
     redis.on("message", async (channel, msg) => {
+      console.log("=========msg:", msg);
+
       if (!msg) return;
       const data = `data: ${msg}\n\n`;
       res.write(data);
