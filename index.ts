@@ -7,6 +7,8 @@ import cors from "cors";
 
 const port = process.env.PORT || 5001;
 
+console.log("========process.env.REDIS_URL:", process.env.REDIS_URL);
+
 const redis = new Redis(process.env.REDIS_URL!);
 
 async function main() {
