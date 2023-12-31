@@ -2,7 +2,7 @@
   "name": "penx-sse-server",
   "version": "0.0.0",
   "scripts": {
-    "dev": "cross-env NODE_ENV=development tsx index.ts",
+    "dev": "cross-env NODE_ENV=development tsx watch index.ts",
     "build": "tsc",
     "deploy": "docker-compose -p penx-sse-server -f docker-compose.yml up --build -d",
     "start:prod": "cross-env NODE_ENV=production node index.js",
@@ -12,6 +12,7 @@
     "@types/body-parser": "^1.19.2",
     "@types/cors": "^2.8.13",
     "@types/express": "^4.17.14",
+    "@types/jsonwebtoken": "^9.0.5",
     "cross-env": "^7.0.3",
     "eslint": "^8.55.0",
     "typescript": "^5.3.2"
@@ -27,6 +28,7 @@
     "express": "^4.18.2",
     "fs-jetpack": "^5.1.0",
     "ioredis": "^5.3.2",
+    "jsonwebtoken": "^9.0.2",
     "tslib": "^2.6.2"
   }
 }

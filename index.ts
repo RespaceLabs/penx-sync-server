@@ -1,16 +1,27 @@
 require("dotenv").config({ path: __dirname + `/.env.${process.env.NODE_ENV}` });
 import express from "express";
+import jwt from "jsonwebtoken";
 
 import Redis from "ioredis";
 import bodyParser from "body-parser";
 import cors from "cors";
 import { EventEmitter } from "events";
 
-EventEmitter.defaultMaxListeners = 100;
+EventEmitter.defaultMaxListeners = 1000;
+
+type SpaceInfo = {
+  spaceId: string;
+  userId: string;
+  lastModifiedTime: number;
+};
 
 const port = process.env.PORT || 4000;
 
 const redis = new Redis(process.env.REDIS_URL!);
+
+type BodyInput = {
+  token: string;
+};
 
 async function main() {
   const app = express();
@@ -22,7 +33,7 @@ async function main() {
     res.json({ hello: "world" });
   });
 
-  app.get("/space-info-sse", (req, res) => {
+  app.post("/space-info-sse", (req, res) => {
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
@@ -30,22 +41,51 @@ async function main() {
     const data = `data: ${JSON.stringify({})}\n\n`;
     res.write(data);
 
+    const body = (req.body || {}) as BodyInput;
+
+    // if (!body?.token) {
+    //   res.end();
+    //   return;
+    // }
+
+    let userId = "";
+
+    try {
+      const decoded = jwt.verify(body.token, process.env.NEXTAUTH_SECRET!);
+      userId = decoded.sub as string;
+    } catch (error) {
+      res.end();
+      return;
+    }
+    //
+
+    // console.log("=============userId:", userId);
+
     const CHANNEL = "NODES_SYNCED";
 
     redis.subscribe(CHANNEL, (_, count) => {
-      console.log("subscribe count.........:", count);
+      // console.log("subscribe count.........:", count);
     });
 
     redis.on("message", async (channel, msg) => {
-      console.log("=========msg:", msg);
-
+      // console.log("=========msg:", msg);
       if (!msg) return;
-      const data = `data: ${msg}\n\n`;
-      res.write(data);
+
+      try {
+        const spaceInfo: SpaceInfo = JSON.parse(msg);
+        if (spaceInfo.userId === userId) {
+          const data = `data: ${msg}\n\n`;
+          res.write(data);
+        }
+      } catch (error) {
+        res.end();
+      }
     });
 
     req.on("close", () => {
-      redis.unsubscribe(CHANNEL);
+      // console.log("close=========");
+      // TODO: how to unsubscribe?
+      // redis.unsubscribe(CHANNEL);
     });
   });
 
