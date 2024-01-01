@@ -68,7 +68,7 @@ async function main() {
     });
 
     redis.on("message", async (channel, msg) => {
-      // console.log("=========msg:", msg);
+      console.log("=========msg:", msg);
       if (!msg) return;
 
       try {
