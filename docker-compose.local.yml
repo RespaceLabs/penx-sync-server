@@ -1,0 +1,11 @@
+version: "3.9"
+services:
+  penx-sse-server-local:
+    container_name: penx-sse-server-local
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "4002:4000"
+    environment:
+      - NODE_ENV=local
