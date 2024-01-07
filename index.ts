@@ -9,19 +9,20 @@ import { EventEmitter } from "events";
 
 EventEmitter.defaultMaxListeners = 1000;
 
-type SpaceInfo = {
+type SseINfo = {
+  eventType: "NODES_UPDATED" | "SPACES_UPDATED";
   spaceId: string;
   userId: string;
   lastModifiedTime: number;
 };
 
-const port = process.env.PORT || 4000;
-
-const redis = new Redis(process.env.REDIS_URL!);
-
 type BodyInput = {
   token: string;
 };
+
+const port = process.env.PORT || 4000;
+
+const redis = new Redis(process.env.REDIS_URL!);
 
 async function main() {
   const app = express();
@@ -33,7 +34,7 @@ async function main() {
     res.json({ hello: "world" });
   });
 
-  app.post("/space-info-sse", (req, res) => {
+  app.post("/sse", (req, res) => {
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
@@ -43,10 +44,10 @@ async function main() {
 
     const body = (req.body || {}) as BodyInput;
 
-    // if (!body?.token) {
-    //   res.end();
-    //   return;
-    // }
+    if (!body?.token) {
+      res.end();
+      return;
+    }
 
     let userId = "";
 
@@ -72,7 +73,7 @@ async function main() {
       if (!msg) return;
 
       try {
-        const spaceInfo: SpaceInfo = JSON.parse(msg);
+        const spaceInfo: SseINfo = JSON.parse(msg);
         if (spaceInfo.userId === userId) {
           const data = `data: ${msg}\n\n`;
           res.write(data);
