@@ -1,4 +1,6 @@
-require("dotenv").config({ path: __dirname + `/.env.${process.env.NODE_ENV}` });
+require("dotenv").config({
+  path: process.cwd() + `/.env.${process.env.NODE_ENV}`,
+});
 import express from "express";
 import jwt from "jsonwebtoken";
 

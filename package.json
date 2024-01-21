@@ -2,15 +2,15 @@
   "name": "penx-sync-server",
   "version": "0.0.0",
   "scripts": {
-    "dev": "cross-env NODE_ENV=development tsx watch index.ts",
+    "dev": "cross-env NODE_ENV=development tsx watch src/index.ts",
     "build": "tsc",
+    "start": "node src/index.js",
+    "start:prod": "cross-env NODE_ENV=production node src/index.js",
     "db:generate": "dotenv -e .env.development prisma generate",
     "db:push": "dotenv -e .env.development prisma db push --skip-generate",
     "deploy": "docker-compose -p penx-sync-server -f docker-compose.yml up --build -d",
     "deploy:develop": "docker-compose -p penx-sync-server-develop -f docker-compose.develop.yml up --build -d",
-    "deploy:local": "docker-compose -p penx-sync-server-local -f docker-compose.local.yml up --build -d",
-    "start:prod": "cross-env NODE_ENV=production node index.js",
-    "start": "node index.js"
+    "deploy:local": "docker-compose -p penx-sync-server-local -f docker-compose.local.yml up --build -d"
   },
   "devDependencies": {
     "@types/node": "^20.10.3",
@@ -20,6 +20,7 @@
     "@types/jsonwebtoken": "^9.0.5",
     "cross-env": "^7.0.3",
     "eslint": "^8.55.0",
+    "prettier": "^3.2.4",
     "typescript": "^5.3.2"
   },
   "dependencies": {
