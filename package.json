@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "dev": "cross-env NODE_ENV=development tsx watch src/index.ts",
-    "build": "tsc",
+    "build": "yarn db:generate && tsc",
     "start": "node src/index.js",
     "start:prod": "cross-env NODE_ENV=production node src/index.js",
     "db:generate": "dotenv -e .env.development prisma generate",
