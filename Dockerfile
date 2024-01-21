@@ -6,12 +6,10 @@ COPY ./package.json .
 
 RUN yarn install
 
-# 分阶段减少体积
 FROM node:18-alpine as builder
 
 WORKDIR /app
 
-# 只复制需要的文件
 COPY . .
 
 # copy node_modules
