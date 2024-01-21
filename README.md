@@ -1,1 +1,1 @@
-# penx-sse-server
+# penx-sync-server

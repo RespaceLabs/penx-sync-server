@@ -1,12 +1,12 @@
 {
-  "name": "penx-sse-server",
+  "name": "penx-sync-server",
   "version": "0.0.0",
   "scripts": {
     "dev": "cross-env NODE_ENV=development tsx watch index.ts",
     "build": "tsc",
-    "deploy": "docker-compose -p penx-sse-server -f docker-compose.yml up --build -d",
-    "deploy:develop": "docker-compose -p penx-sse-server-develop -f docker-compose.develop.yml up --build -d",
-    "deploy:local": "docker-compose -p penx-sse-server-local -f docker-compose.local.yml up --build -d",
+    "deploy": "docker-compose -p penx-sync-server -f docker-compose.yml up --build -d",
+    "deploy:develop": "docker-compose -p penx-sync-server-develop -f docker-compose.develop.yml up --build -d",
+    "deploy:local": "docker-compose -p penx-sync-server-local -f docker-compose.local.yml up --build -d",
     "start:prod": "cross-env NODE_ENV=production node index.js",
     "start": "node index.js"
   },

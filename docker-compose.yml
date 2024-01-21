@@ -1,7 +1,7 @@
 version: "3.9"
 services:
-  penx-sse-server:
-    container_name: penx-sse-server
+  penx-sync-server:
+    container_name: penx-sync-server
     build:
       context: .
       dockerfile: Dockerfile
