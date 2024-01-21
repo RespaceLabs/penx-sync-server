@@ -1,0 +1,31 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model Node {
+    id         String  @id @default(uuid())
+    spaceId    String
+    parentId   String?
+    databaseId String?
+    type       String
+    element    Json
+    props      Json?
+    collapsed  Boolean @default(false)
+    folded     Boolean @default(true)
+    children   Json?
+
+    openedAt  DateTime @default(now())
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([spaceId])
+    @@index([type])
+}

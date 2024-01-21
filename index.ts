@@ -7,6 +7,8 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import { EventEmitter } from "events";
 
+console.log("============process.env.NODE_ENV:", process.env.NODE_ENV);
+
 EventEmitter.defaultMaxListeners = 1000;
 
 type SseINfo = {
