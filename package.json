@@ -8,8 +8,8 @@
     "start:prod": "cross-env NODE_ENV=production node src/index.js",
     "db:generate": "dotenv -e .env.development prisma generate",
     "db:push": "dotenv -e .env.development prisma db push --skip-generate",
-    "deploy": "docker-compose -p penx-sync-server -f docker-compose.yml up --build -d",
-    "deploy:develop": "docker-compose -p penx-sync-server-develop -f docker-compose.develop.yml up --build -d",
+    "deploy:production": "docker-compose -p penx-sync-server-production -f docker-compose.production.yml up --build -d",
+    "deploy:development": "docker-compose -p penx-sync-server-development -f docker-compose.development.yml up --build -d",
     "deploy:local": "docker-compose -p penx-sync-server-local -f docker-compose.local.yml up --build -d"
   },
   "devDependencies": {

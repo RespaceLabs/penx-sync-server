@@ -1,20 +1,22 @@
+// TODO: need improve this
+require('dotenv').config({
+  path: process.cwd() + `/.env.${process.env.NODE_ENV}`,
+})
+
 import Redis from 'ioredis'
-import { z } from 'zod'
-import { Node, prisma } from '@penx/db'
-import { INode, NodeType } from '@penx/model-types'
+import { INode, NodeType } from './INode'
+import { prisma } from './prisma-client'
 
 const redis = new Redis(process.env.REDIS_URL!)
 
-export const syncNodesInput = z.object({
-  spaceId: z.string(),
-  nodes: z.string(),
-})
+export type SyncUserInput = {
+  userId: string
+  spaceId: string
+  nodes: INode[]
+}
 
-export type SyncUserInput = z.infer<typeof syncNodesInput>
-
-export function syncNodes(input: SyncUserInput, userId: string) {
-  const newNodes: INode[] = JSON.parse(input.nodes)
-  const { spaceId } = input
+export function syncNodes(input: SyncUserInput) {
+  const { spaceId, userId, nodes: newNodes } = input
 
   if (!newNodes?.length) return null
 
@@ -75,7 +77,7 @@ export function syncNodes(input: SyncUserInput, userId: string) {
 
       redis.publish(key, JSON.stringify(data))
 
-      await cleanDeletedNodes(nodes, async (id) => {
+      await cleanDeletedNodes(nodes as any, async (id) => {
         tx.node.delete({
           where: { id },
         })
@@ -97,10 +99,10 @@ export function syncNodes(input: SyncUserInput, userId: string) {
 }
 
 async function cleanDeletedNodes(
-  nodes: Node[],
+  nodes: INode[],
   deleteNode: (id: string) => Promise<void>,
 ) {
-  const nodeMap = new Map<string, Node>()
+  const nodeMap = new Map<string, INode>()
 
   for (const node of nodes) {
     nodeMap.set(node.id, node)
@@ -127,7 +129,7 @@ async function cleanDeletedNodes(
     if (!node.parentId) continue
 
     const parentNode = nodeMap.get(node.parentId)
-    const children = (parentNode?.children || []) as string
+    const children = (parentNode?.children || []) as string[]
 
     if (!children.includes(node.id)) {
       console.log('=======clear node!!!!', node, JSON.stringify(node.element))

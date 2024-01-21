@@ -1,7 +1,7 @@
-version: "3.9"
+version: '3.9'
 services:
-  penx-sync-server:
-    container_name: penx-sync-server
+  penx-sync-server-production:
+    container_name: penx-sync-server-production
     build:
       context: .
       dockerfile: Dockerfile

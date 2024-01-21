@@ -1,106 +1,113 @@
-require("dotenv").config({
+require('dotenv').config({
   path: process.cwd() + `/.env.${process.env.NODE_ENV}`,
-});
-import express from "express";
-import jwt from "jsonwebtoken";
+})
+import express from 'express'
+import jwt from 'jsonwebtoken'
 
-import Redis from "ioredis";
-import bodyParser from "body-parser";
-import cors from "cors";
-import { EventEmitter } from "events";
+import Redis from 'ioredis'
+import bodyParser from 'body-parser'
+import cors from 'cors'
+import { EventEmitter } from 'events'
+import { syncNodes } from './syncNodes'
 
-console.log("============process.env.NODE_ENV:", process.env.NODE_ENV);
+console.log('============process.env.NODE_ENV:', process.env.NODE_ENV)
+console.log('========process.env.REDIS_URL:', process.env.REDIS_URL)
 
-EventEmitter.defaultMaxListeners = 1000;
+EventEmitter.defaultMaxListeners = 1000
 
 type SseINfo = {
-  eventType: "NODES_UPDATED" | "SPACES_UPDATED";
-  spaceId: string;
-  userId: string;
-  lastModifiedTime: number;
-};
+  eventType: 'NODES_UPDATED' | 'SPACES_UPDATED'
+  spaceId: string
+  userId: string
+  lastModifiedTime: number
+}
 
 type BodyInput = {
-  token: string;
-};
+  token: string
+}
 
-const port = process.env.PORT || 4000;
+const port = process.env.PORT || 4000
 
-const redis = new Redis(process.env.REDIS_URL!);
+const redis = new Redis(process.env.REDIS_URL!)
 
 async function main() {
-  const app = express();
-  app.use(bodyParser.urlencoded({ extended: false }));
-  app.use(bodyParser.json());
-  app.use(cors());
+  const app = express()
+  app.use(bodyParser.urlencoded({ extended: false }))
+  app.use(bodyParser.json())
+  app.use(cors())
 
-  app.get("/", (req, res) => {
-    res.json({ hello: "world" });
-  });
+  app.get('/', (req, res) => {
+    res.json({ hello: 'world', time: new Date() })
+  })
 
-  app.post("/sse", (req, res) => {
-    res.setHeader("Content-Type", "text/event-stream");
-    res.setHeader("Cache-Control", "no-cache");
-    res.setHeader("Connection", "keep-alive");
+  app.post('/push-nodes', async (req, res) => {
+    const time = await syncNodes(req.body)
+    res.json({ time })
+  })
 
-    const data = `data: ${JSON.stringify({})}\n\n`;
-    res.write(data);
+  app.post('/sse', (req, res) => {
+    res.setHeader('Content-Type', 'text/event-stream')
+    res.setHeader('Cache-Control', 'no-cache')
+    res.setHeader('Connection', 'keep-alive')
 
-    const body = (req.body || {}) as BodyInput;
+    const data = `data: ${JSON.stringify({})}\n\n`
+    res.write(data)
+
+    const body = (req.body || {}) as BodyInput
 
     if (!body?.token) {
-      res.end();
-      return;
+      res.end()
+      return
     }
 
-    let userId = "";
+    let userId = ''
 
     try {
-      const decoded = jwt.verify(body.token, process.env.NEXTAUTH_SECRET!);
-      userId = decoded.sub as string;
+      const decoded = jwt.verify(body.token, process.env.NEXTAUTH_SECRET!)
+      userId = decoded.sub as string
     } catch (error) {
-      res.end();
-      return;
+      res.end()
+      return
     }
     //
 
     // console.log("=============userId:", userId);
 
-    const CHANNEL = "NODES_SYNCED";
+    const CHANNEL = 'NODES_SYNCED'
 
     redis.subscribe(CHANNEL, (_, count) => {
       // console.log("subscribe count.........:", count);
-    });
+    })
 
-    redis.on("message", async (channel, msg) => {
-      console.log("=========msg:", msg);
-      if (!msg) return;
+    redis.on('message', async (channel, msg) => {
+      console.log('=========msg:', msg)
+      if (!msg) return
 
       try {
-        const spaceInfo: SseINfo = JSON.parse(msg);
+        const spaceInfo: SseINfo = JSON.parse(msg)
         if (spaceInfo.userId === userId) {
-          const data = `data: ${msg}\n\n`;
-          res.write(data);
+          const data = `data: ${msg}\n\n`
+          res.write(data)
         }
       } catch (error) {
-        res.end();
+        res.end()
       }
-    });
+    })
 
-    req.on("close", () => {
+    req.on('close', () => {
       // console.log("close=========");
       // TODO: how to unsubscribe?
       // redis.unsubscribe(CHANNEL);
-    });
-  });
+    })
+  })
 
   app.listen(port, () => {
-    console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
-  });
+    console.log(`⚡️[server]: Server is running at http://localhost:${port}`)
+  })
 }
 
 main()
   .then(() => {})
   .catch((e) => {
-    console.log(e);
-  });
+    console.log(e)
+  })
