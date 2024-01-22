@@ -9,6 +9,7 @@ import bodyParser from 'body-parser'
 import cors from 'cors'
 import { EventEmitter } from 'events'
 import { syncNodes } from './syncNodes'
+import { prisma } from './prisma-client'
 
 console.log('============process.env.NODE_ENV:', process.env.NODE_ENV)
 console.log('========process.env.REDIS_URL:', process.env.REDIS_URL)
@@ -38,6 +39,14 @@ async function main() {
 
   app.get('/', (req, res) => {
     res.json({ hello: 'world', time: new Date() })
+  })
+
+  app.get('/get-all-nodes', async (req, res) => {
+    const spaceId = req.query.spaceId as string
+    const spaces = await prisma.node.findMany({
+      where: { spaceId },
+    })
+    res.json(spaces)
   })
 
   app.post('/push-nodes', async (req, res) => {
