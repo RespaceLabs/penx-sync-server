@@ -13,6 +13,7 @@ import { prisma } from './prisma-client'
 
 console.log('============process.env.NODE_ENV:', process.env.NODE_ENV)
 console.log('========process.env.REDIS_URL:', process.env.REDIS_URL)
+console.log('=======process.env.TOKEN:', process.env.TOKEN)
 
 EventEmitter.defaultMaxListeners = 1000
 
@@ -52,6 +53,12 @@ async function main() {
   })
 
   app.post('/get-all-nodes', async (req, res) => {
+    const userId = decodeToken(req.body.token)
+    if (!userId) {
+      res.status(400).json({ error: 'invalid token' })
+      return
+    }
+
     const spaceId = req.body.spaceId as string
     const spaces = await prisma.node.findMany({
       where: { spaceId },
@@ -61,7 +68,11 @@ async function main() {
 
   app.post('/get-pullable-nodes', async (req, res) => {
     const userId = decodeToken(req.body.token)
-    if (!userId) throw new Error('invalid token')
+
+    if (!userId) {
+      res.status(400).json({ error: 'invalid token' })
+      return
+    }
 
     const spaceId = req.body.spaceId as string
     const lastModifiedTime = req.body.lastModifiedTime as number
@@ -79,7 +90,10 @@ async function main() {
 
   app.post('/push-nodes', async (req, res) => {
     const userId = decodeToken(req.body.token)
-    if (!userId) throw new Error('invalid token')
+    if (!userId) {
+      res.status(400).json({ error: 'invalid token' })
+      return
+    }
 
     const time = await syncNodes({
       userId,
@@ -95,8 +109,6 @@ async function main() {
 
     const data = `data: ${JSON.stringify({})}\n\n`
     res.write(data)
-
-    const body = (req.body || {}) as BodyInput
 
     const userId = decodeToken(req.body.token)
 
