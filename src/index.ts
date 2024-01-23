@@ -31,6 +31,16 @@ const port = process.env.PORT || 4000
 
 const redis = new Redis(process.env.REDIS_URL!)
 
+function decodeToken(token: string): string | null {
+  try {
+    const decoded = jwt.verify(token, process.env.TOKEN!)
+    const userId = decoded.sub as string
+    return userId
+  } catch (error) {
+    return null
+  }
+}
+
 async function main() {
   const app = express()
   app.use(bodyParser.urlencoded({ extended: false }))
@@ -41,16 +51,40 @@ async function main() {
     res.json({ hello: 'world', time: new Date() })
   })
 
-  app.get('/get-all-nodes', async (req, res) => {
-    const spaceId = req.query.spaceId as string
+  app.post('/get-all-nodes', async (req, res) => {
+    const spaceId = req.body.spaceId as string
     const spaces = await prisma.node.findMany({
       where: { spaceId },
     })
     res.json(spaces)
   })
 
+  app.post('/get-pullable-nodes', async (req, res) => {
+    const userId = decodeToken(req.body.token)
+    if (!userId) throw new Error('invalid token')
+
+    const spaceId = req.body.spaceId as string
+    const lastModifiedTime = req.body.lastModifiedTime as number
+    const time = new Date(lastModifiedTime)
+
+    const nodes = await prisma.node.findMany({
+      where: {
+        spaceId,
+        updatedAt: { gt: time },
+      },
+    })
+
+    res.json(nodes)
+  })
+
   app.post('/push-nodes', async (req, res) => {
-    const time = await syncNodes(req.body)
+    const userId = decodeToken(req.body.token)
+    if (!userId) throw new Error('invalid token')
+
+    const time = await syncNodes({
+      userId,
+      ...req.body,
+    })
     res.json({ time })
   })
 
@@ -64,23 +98,12 @@ async function main() {
 
     const body = (req.body || {}) as BodyInput
 
-    if (!body?.token) {
+    const userId = decodeToken(req.body.token)
+
+    if (!userId) {
       res.end()
       return
     }
-
-    let userId = ''
-
-    try {
-      const decoded = jwt.verify(body.token, process.env.NEXTAUTH_SECRET!)
-      userId = decoded.sub as string
-    } catch (error) {
-      res.end()
-      return
-    }
-    //
-
-    // console.log("=============userId:", userId);
 
     const CHANNEL = 'NODES_SYNCED'
 
@@ -94,10 +117,13 @@ async function main() {
 
       try {
         const spaceInfo: SseINfo = JSON.parse(msg)
-        if (spaceInfo.userId === userId) {
-          const data = `data: ${msg}\n\n`
-          res.write(data)
-        }
+        // if (spaceInfo.userId === userId) {
+        //   const data = `data: ${msg}\n\n`
+        //   res.write(data)
+        // }
+
+        const data = `data: ${msg}\n\n`
+        res.write(data)
       } catch (error) {
         res.end()
       }

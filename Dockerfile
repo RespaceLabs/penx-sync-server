@@ -28,4 +28,12 @@ WORKDIR /app
 
 COPY --from=builder /app .
 
+ARG REDIS_URL
+ARG TOKEN
+
+ARG DATABASE_URL=postgresql://postgres:qfLYycA3RmFHXor2@db.lhbhzftdcwwpxivqacsj.supabase.co:5432/postgres
+ENV DATABASE_URL=${DATABASE_URL}
+
+ENV NODE_ENV=production
+
 CMD yarn start
