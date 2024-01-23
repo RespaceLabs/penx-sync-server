@@ -2,7 +2,6 @@ require('dotenv').config({
   path: process.cwd() + `/.env.${process.env.NODE_ENV}`,
 })
 import express from 'express'
-import jwt from 'jsonwebtoken'
 
 import Redis from 'ioredis'
 import bodyParser from 'body-parser'
@@ -10,6 +9,7 @@ import cors from 'cors'
 import { EventEmitter } from 'events'
 import { syncNodes } from './syncNodes'
 import { prisma } from './prisma-client'
+import { decodeToken } from './decodeToken'
 
 console.log('============process.env.NODE_ENV:', process.env.NODE_ENV)
 console.log('========process.env.REDIS_URL:', process.env.REDIS_URL)
@@ -24,23 +24,9 @@ type SseINfo = {
   lastModifiedTime: number
 }
 
-type BodyInput = {
-  token: string
-}
-
 const port = process.env.PORT || 4000
 
 const redis = new Redis(process.env.REDIS_URL!)
-
-function decodeToken(token: string): string | null {
-  try {
-    const decoded = jwt.verify(token, process.env.TOKEN!)
-    const userId = decoded.sub as string
-    return userId
-  } catch (error) {
-    return null
-  }
-}
 
 async function main() {
   const app = express()

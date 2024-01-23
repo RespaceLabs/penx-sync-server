@@ -75,8 +75,6 @@ export function syncNodes(input: SyncUserInput) {
 
       // console.log('==========data:', data)
 
-      redis.publish(key, JSON.stringify(data))
-
       await cleanDeletedNodes(nodes as any, async (id) => {
         tx.node.delete({
           where: { id },
@@ -88,6 +86,10 @@ export function syncNodes(input: SyncUserInput) {
         orderBy: { updatedAt: 'desc' },
         take: 1,
       })
+
+      setTimeout(() => {
+        redis.publish(key, JSON.stringify(data))
+      }, 10)
 
       return lastNode?.updatedAt ?? null
     },
