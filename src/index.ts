@@ -38,8 +38,8 @@ const redis = new Redis(process.env.REDIS_URL!)
 
 async function main() {
   const app = express()
-  app.use(bodyParser.urlencoded({ extended: false }))
-  app.use(bodyParser.json())
+  app.use(bodyParser.urlencoded({ limit: '100mb', extended: false }))
+  app.use(bodyParser.json({ limit: '100mb' }))
   app.use(cors())
 
   app.get('/', async (req, res) => {
