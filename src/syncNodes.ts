@@ -6,6 +6,7 @@ require('dotenv').config({
 import Redis from 'ioredis'
 import { INode, NodeType } from './INode'
 import { prisma } from './prisma-client'
+import { Node } from '@prisma/client'
 
 const redis = new Redis(process.env.REDIS_URL!)
 
@@ -15,6 +16,34 @@ export type SyncUserInput = {
   nodes: INode[]
 }
 
+function isAllNodes(nodes: INode[]) {
+  const set = new Set([
+    NodeType.ROOT,
+    NodeType.DATABASE_ROOT,
+    NodeType.DAILY_ROOT,
+  ])
+
+  for (const node of nodes) {
+    if (set.has(node.type)) set.delete(node.type)
+  }
+
+  return set.size === 0
+}
+
+function isSpaceBroken(nodes: INode[]) {
+  const set = new Set([
+    NodeType.ROOT,
+    NodeType.DATABASE_ROOT,
+    NodeType.DAILY_ROOT,
+  ])
+
+  for (const node of nodes) {
+    if (set.has(node.type)) set.delete(node.type)
+  }
+
+  return set.size !== 0
+}
+
 export function syncNodes(input: SyncUserInput) {
   const { spaceId, userId, nodes: newNodes } = input
 
@@ -22,56 +51,47 @@ export function syncNodes(input: SyncUserInput) {
 
   return prisma.$transaction(
     async (tx) => {
-      let nodes = await tx.node.findMany({ where: { spaceId } })
+      let nodes: Node[] = []
+      if (isAllNodes(newNodes)) {
+        // console.log('sync alll===================')
+        await tx.node.deleteMany({ where: { spaceId } })
+        await tx.node.createMany({ data: newNodes })
+      } else {
+        // console.log('sync diff==================')
 
-      const nodeIdsSet = new Set(nodes.map((node) => node.id))
+        nodes = await tx.node.findMany({ where: { spaceId } })
 
-      const updatedNodes: INode[] = []
-      const addedNodes: INode[] = []
-
-      for (const n of newNodes) {
-        if (nodeIdsSet.has(n.id)) {
-          updatedNodes.push(n)
-        } else {
-          addedNodes.push(n)
+        if (isSpaceBroken(nodes as INode[])) {
+          throw new Error('NODES_BROKEN')
         }
+
+        const nodeIdsSet = new Set(nodes.map((node) => node.id))
+
+        const updatedNodes: INode[] = []
+        const addedNodes: INode[] = []
+
+        for (const n of newNodes) {
+          if (nodeIdsSet.has(n.id)) {
+            updatedNodes.push(n)
+          } else {
+            addedNodes.push(n)
+          }
+        }
+
+        await tx.node.createMany({ data: addedNodes })
+
+        const promises = updatedNodes.map((n) => {
+          // console.log('========n:', n)
+          return tx.node.update({ where: { id: n.id }, data: n })
+        })
+
+        await Promise.all(promises)
       }
-
-      // console.log(
-      //   '=======updatedNodes:',
-      //   JSON.stringify(updatedNodes, null, 2),
-      //   'addedNodes:',
-      //   JSON.stringify(addedNodes, null, 2),
-      // )
-
-      await tx.node.createMany({ data: addedNodes })
-
-      const promises = updatedNodes.map((n) => {
-        // console.log('========n:', n)
-        return tx.node.update({ where: { id: n.id }, data: n })
-      })
-
-      await Promise.all(promises)
 
       // TODO: should clean no used nodes
       nodes = await tx.node.findMany({
         where: { spaceId },
       })
-
-      const node = await tx.node.findFirst({
-        where: { spaceId },
-        orderBy: {
-          updatedAt: 'desc',
-        },
-        take: 1,
-      })
-
-      const key = 'NODES_SYNCED'
-      const data = {
-        spaceId,
-        userId,
-        lastModifiedTime: node!.updatedAt.getTime(),
-      }
 
       // console.log('==========data:', data)
 
@@ -86,6 +106,13 @@ export function syncNodes(input: SyncUserInput) {
         orderBy: { updatedAt: 'desc' },
         take: 1,
       })
+
+      const key = 'NODES_SYNCED'
+      const data = {
+        spaceId,
+        userId,
+        lastModifiedTime: lastNode!.updatedAt.getTime(),
+      }
 
       setTimeout(() => {
         redis.publish(key, JSON.stringify(data))

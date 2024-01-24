@@ -11,6 +11,14 @@ import { syncNodes } from './syncNodes'
 import { prisma } from './prisma-client'
 import { decodeToken } from './decodeToken'
 
+type Response<T = any> = {
+  success: boolean
+  data: T
+  error: any
+  errorCode: string
+  errorMessage: string
+}
+
 console.log('============process.env.NODE_ENV:', process.env.NODE_ENV)
 console.log('========process.env.REDIS_URL:', process.env.REDIS_URL)
 console.log('=======process.env.TOKEN:', process.env.TOKEN)
@@ -34,8 +42,13 @@ async function main() {
   app.use(bodyParser.json())
   app.use(cors())
 
-  app.get('/', (req, res) => {
-    res.json({ hello: 'world', time: new Date() })
+  app.get('/', async (req, res) => {
+    const nodes = await prisma.node.findMany({ take: 1 })
+    res.json({
+      nodes,
+      hello: 'world',
+      time: new Date(),
+    })
   })
 
   app.post('/get-all-nodes', async (req, res) => {
@@ -81,11 +94,30 @@ async function main() {
       return
     }
 
-    const time = await syncNodes({
-      userId,
-      ...req.body,
-    })
-    res.json({ time })
+    try {
+      const time = await syncNodes({
+        userId,
+        ...req.body,
+      })
+
+      res.json({
+        success: true,
+        data: time,
+      } as Response)
+    } catch (error: any) {
+      // console.log('==========error:', error)
+
+      const errorCode = error.message.includes('NODES_BROKEN')
+        ? 'NODES_BROKEN'
+        : 'UNKNOWN'
+
+      res.json({
+        success: false,
+        errorCode,
+        errorMessage: errorCode,
+        error,
+      } as Response)
+    }
   })
 
   app.post('/sse', (req, res) => {
@@ -110,7 +142,7 @@ async function main() {
     })
 
     redis.on('message', async (channel, msg) => {
-      console.log('=========msg:', msg)
+      // console.log('=========msg:', msg)
       if (!msg) return
 
       try {
