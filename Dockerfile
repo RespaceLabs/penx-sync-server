@@ -31,7 +31,7 @@ COPY --from=builder /app .
 ARG REDIS_URL
 ARG TOKEN
 
-ARG DATABASE_URL=postgresql://postgres:qfLYycA3RmFHXor2@db.lhbhzftdcwwpxivqacsj.supabase.co:5432/postgres
+ARG DATABASE_URL=postgres://postgres.lhbhzftdcwwpxivqacsj:qfLYycA3RmFHXor2@aws-0-us-west-1.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1
 ENV DATABASE_URL=${DATABASE_URL}
 
 ENV NODE_ENV=production
