@@ -51,6 +51,25 @@ async function main() {
     })
   })
 
+  app.post('/getNode', async (req, res) => {
+    const userId = decodeToken(req.body.token)
+    if (!userId) {
+      res.status(400).json({ error: 'invalid token' })
+      return
+    }
+
+    const spaceId = req.body.spaceId as string
+    const nodeId = req.body.nodeId as string
+    try {
+      const node = await prisma.node.findFirst({
+        where: { spaceId, id: nodeId },
+      })
+      res.json(node)
+    } catch (error) {
+      res.json(null)
+    }
+  })
+
   app.post('/getAllNodes', async (req, res) => {
     const userId = decodeToken(req.body.token)
     if (!userId) {
@@ -59,10 +78,10 @@ async function main() {
     }
 
     const spaceId = req.body.spaceId as string
-    const spaces = await prisma.node.findMany({
+    const nodes = await prisma.node.findMany({
       where: { spaceId },
     })
-    res.json(spaces)
+    res.json(nodes)
   })
 
   app.post('/getNodesLastUpdatedAt', async (req, res) => {
