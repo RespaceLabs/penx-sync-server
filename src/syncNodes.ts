@@ -2,7 +2,7 @@
 require('dotenv').config({
   path: process.cwd() + `/.env.${process.env.NODE_ENV}`,
 })
-
+import { format } from 'date-fns'
 import Redis from 'ioredis'
 import { INode, NodeType } from './INode'
 import { prisma } from './prisma-client'
@@ -14,6 +14,7 @@ export type SyncUserInput = {
   userId: string
   spaceId: string
   nodes: INode[]
+  isTodayNode: boolean
 }
 
 function isAllNodes(nodes: INode[]) {
@@ -45,7 +46,9 @@ function isSpaceBroken(nodes: INode[]) {
 }
 
 export function syncNodes(input: SyncUserInput) {
-  const { spaceId, userId, nodes: newNodes } = input
+  const { spaceId, userId, isTodayNode = false, nodes: newNodes } = input
+
+  console.log('============newNodes:', newNodes, 'spaceId:', spaceId)
 
   if (!newNodes?.length) return null
 
@@ -78,7 +81,9 @@ export function syncNodes(input: SyncUserInput) {
           }
         }
 
-        await tx.node.createMany({ data: addedNodes })
+        await tx.node.createMany({
+          data: addedNodes,
+        })
 
         const promises = updatedNodes.map((n) => {
           // console.log('========n:', n)
@@ -161,7 +166,7 @@ async function cleanDeletedNodes(
     const children = (parentNode?.children || []) as string[]
 
     if (!children.includes(node.id)) {
-      console.log('=======clear node!!!!', node, JSON.stringify(node.element))
+      // console.log('=======clear node!!!!', node, JSON.stringify(node.element))
       await deleteNode(node.id)
     }
   }

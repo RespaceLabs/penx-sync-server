@@ -11,11 +11,11 @@
     "deploy:development": "docker-compose -p penx-sync-server-development -f docker-compose.development.yml up --build -d"
   },
   "devDependencies": {
-    "@types/node": "^20.10.3",
     "@types/body-parser": "^1.19.2",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.14",
     "@types/jsonwebtoken": "^9.0.5",
+    "@types/node": "^20.10.3",
     "cross-env": "^7.0.3",
     "dotenv-cli": "^7.3.0",
     "eslint": "^8.55.0",
@@ -27,6 +27,7 @@
     "body-parser": "^1.20.2",
     "chokidar": "^3.5.3",
     "cors": "^2.8.5",
+    "date-fns": "^3.6.0",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "fs-jetpack": "^5.1.0",
