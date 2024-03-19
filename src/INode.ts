@@ -58,6 +58,8 @@ export interface INode {
 
   children: string[]
 
+  date?: string
+
   openedAt: Date
 
   createdAt: Date
