@@ -46,18 +46,37 @@ function isSpaceBroken(nodes: INode[]) {
 }
 
 export function syncNodes(input: SyncUserInput) {
-  const { spaceId, userId, isTodayNode = false, nodes: newNodes } = input
+  const { spaceId, userId, isTodayNode = false } = input
 
-  console.log('============newNodes:', newNodes, 'spaceId:', spaceId)
+  const newNodes = input.nodes.map((n) => ({
+    id: n.id,
+    spaceId: n.spaceId,
+    parentId: n.parentId,
+    databaseId: n.databaseId,
+    type: n.type,
+    element: n.element,
+    props: n.props,
+    collapsed: n.collapsed,
+    folded: n.folded,
+    children: n.children,
+    date: n.date,
+    createdAt: n.createdAt,
+    updatedAt: n.updatedAt,
+  }))
+
+  // console.log('============newNodes:', newNodes, 'spaceId:', spaceId)
 
   if (!newNodes?.length) return null
 
   return prisma.$transaction(
     async (tx) => {
       let nodes: Node[] = []
+      console.log('========isAllNodes(newNodes):', isAllNodes(newNodes))
+
       if (isAllNodes(newNodes)) {
-        // console.log('sync alll===================')
+        // console.log('sync all===================')
         await tx.node.deleteMany({ where: { spaceId } })
+
         await tx.node.createMany({ data: newNodes })
       } else {
         // console.log('sync diff==================')

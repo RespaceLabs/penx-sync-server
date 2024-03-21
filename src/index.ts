@@ -60,6 +60,7 @@ async function main() {
 
     const spaceId = req.body.spaceId as string
     const nodeId = req.body.nodeId as string
+
     try {
       const node = await prisma.node.findFirst({
         where: { spaceId, id: nodeId },
@@ -134,6 +135,8 @@ async function main() {
     }
 
     try {
+      console.log('start sync.........')
+
       const time = await syncNodes({
         userId,
         ...req.body,
@@ -146,7 +149,7 @@ async function main() {
         data: time,
       } as Response)
     } catch (error: any) {
-      // console.log('==========error:', error)
+      console.log('==========error:', error)
 
       const errorCode = error.message.includes('NODES_BROKEN')
         ? 'NODES_BROKEN'
