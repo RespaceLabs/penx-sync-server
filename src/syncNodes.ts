@@ -48,7 +48,7 @@ function isSpaceBroken(nodes: INode[]) {
 export function syncNodes(input: SyncUserInput) {
   const { spaceId, userId, isTodayNode = false } = input
 
-  const newNodes = input.nodes.map((n) => ({
+  const newNodes: INode[] = input.nodes.map((n) => ({
     id: n.id,
     spaceId: n.spaceId,
     parentId: n.parentId,
