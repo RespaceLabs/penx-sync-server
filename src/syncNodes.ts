@@ -71,17 +71,27 @@ export function syncNodes(input: SyncUserInput) {
   return prisma.$transaction(
     async (tx) => {
       let nodes: Node[] = []
-      console.log('========isAllNodes(newNodes):', isAllNodes(newNodes))
 
       if (isAllNodes(newNodes)) {
         // console.log('sync all===================')
         await tx.node.deleteMany({ where: { spaceId } })
-
         await tx.node.createMany({ data: newNodes })
       } else {
         // console.log('sync diff==================')
+        let todayNode: Node
 
         nodes = await tx.node.findMany({ where: { spaceId } })
+
+        todayNode = nodes.find(
+          (n) =>
+            n.date === format(new Date(), 'yyyy-MM-dd') &&
+            n.type === NodeType.DAILY,
+        )
+
+        // TODO: need improve this
+        if (isTodayNode && !todayNode) {
+          throw new Error('No today node found')
+        }
 
         if (isSpaceBroken(nodes as INode[])) {
           throw new Error('NODES_BROKEN')
@@ -100,12 +110,30 @@ export function syncNodes(input: SyncUserInput) {
           }
         }
 
-        await tx.node.createMany({
-          data: addedNodes,
-        })
+        const newAddedNodes = isTodayNode
+          ? addedNodes.map((n) => ({
+              ...n,
+              parentId: todayNode.id,
+            }))
+          : addedNodes
+
+        await tx.node.createMany({ data: newAddedNodes })
+
+        if (isTodayNode) {
+          await tx.node.update({
+            where: { id: todayNode.id },
+            data: {
+              children: [
+                ...(todayNode.children as any),
+                ...addedNodes.map((n) => n.id),
+              ],
+            },
+          })
+        }
+
+        // console.log('=============todayNode:', todayNode)
 
         const promises = updatedNodes.map((n) => {
-          // console.log('========n:', n)
           return tx.node.update({ where: { id: n.id }, data: n })
         })
 
@@ -116,8 +144,6 @@ export function syncNodes(input: SyncUserInput) {
       nodes = await tx.node.findMany({
         where: { spaceId },
       })
-
-      // console.log('==========data:', data)
 
       await cleanDeletedNodes(nodes as any, async (id) => {
         tx.node.delete({
