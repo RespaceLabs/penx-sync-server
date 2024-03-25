@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "dev": "cross-env NODE_ENV=development tsx watch src/index.ts",
+    "token": "cross-env NODE_ENV=development tsx test.ts",
     "build": "yarn db:generate && tsc",
     "start": "node src/index.js",
     "start:prod": "cross-env NODE_ENV=production node src/index.js",
