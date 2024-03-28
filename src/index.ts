@@ -11,6 +11,7 @@ import { prisma } from './lib/prisma-client'
 import { initDatabase } from './lib/initDatabase'
 import { decodeToken } from './lib/decodeToken'
 import { syncNodes } from './lib/syncNodes'
+import { auth } from './middlewares/auth'
 
 type Response<T = any> = {
   success: boolean
@@ -19,10 +20,6 @@ type Response<T = any> = {
   errorCode: string
   errorMessage: string
 }
-
-console.log('============process.env.NODE_ENV:', process.env.NODE_ENV)
-console.log('========process.env.REDIS_URL:', process.env.REDIS_URL)
-console.log('=======process.env.TOKEN:', process.env.TOKEN)
 
 EventEmitter.defaultMaxListeners = 1000
 
@@ -54,13 +51,7 @@ async function main() {
     })
   })
 
-  app.post('/getNode', async (req, res) => {
-    const userId = decodeToken(req.body.token)
-    if (!userId) {
-      res.status(400).json({ error: 'invalid token' })
-      return
-    }
-
+  app.post('/getNode', auth, async (req, res) => {
     const spaceId = req.body.spaceId as string
     const nodeId = req.body.nodeId as string
 
@@ -74,13 +65,7 @@ async function main() {
     }
   })
 
-  app.post('/getAllNodes', async (req, res) => {
-    const userId = decodeToken(req.body.token)
-    if (!userId) {
-      res.status(400).json({ error: 'invalid token' })
-      return
-    }
-
+  app.post('/getAllNodes', auth, async (req, res) => {
     const spaceId = req.body.spaceId as string
     const nodes = await prisma.node.findMany({
       where: { spaceId },
@@ -88,13 +73,7 @@ async function main() {
     res.json(nodes)
   })
 
-  app.post('/getNodesLastUpdatedAt', async (req, res) => {
-    const userId = decodeToken(req.body.token)
-    if (!userId) {
-      res.status(400).json({ error: 'invalid token' })
-      return
-    }
-
+  app.post('/getNodesLastUpdatedAt', auth, async (req, res) => {
     const spaceId = req.body.spaceId as string
 
     const node = await prisma.node.findFirst({
@@ -108,14 +87,7 @@ async function main() {
     })
   })
 
-  app.post('/getPullableNodes', async (req, res) => {
-    const userId = decodeToken(req.body.token)
-
-    if (!userId) {
-      res.status(400).json({ error: 'invalid token' })
-      return
-    }
-
+  app.post('/getPullableNodes', auth, async (req, res) => {
     const spaceId = req.body.spaceId as string
     const lastModifiedTime = req.body.lastModifiedTime as number
     const time = new Date(lastModifiedTime)
@@ -130,12 +102,8 @@ async function main() {
     res.json(nodes)
   })
 
-  app.post('/pushNodes', async (req, res) => {
+  app.post('/pushNodes', auth, async (req, res) => {
     const userId = decodeToken(req.body.token)
-    if (!userId) {
-      res.status(400).json({ error: 'invalid token' })
-      return
-    }
 
     try {
       console.log('start sync.........')

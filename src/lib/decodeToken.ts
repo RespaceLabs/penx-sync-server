@@ -11,7 +11,7 @@ export function decodeToken(
     const userId = decoded.sub as string
     return userId
   } catch (error) {
-    console.log('token:', token, 'key===:', key)
+    // console.log('token:', token, 'key===:', key)
     console.log('========error:', error)
 
     return null

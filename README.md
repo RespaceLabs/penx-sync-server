@@ -1,3 +1,1 @@
-# penx-sync-server
-
-wip...
+# PenX Sync Server

@@ -1,7 +1,10 @@
 import { prisma } from './prisma-client'
 
 export async function initDatabase() {
-  const r0 = await prisma.$executeRaw`
+  if (!process.env.DATABASE_URL) return
+
+  // create table
+  await prisma.$executeRaw`
     CREATE TABLE IF NOT EXISTS "Node" (
         "id" TEXT NOT NULL,
         "spaceId" TEXT NOT NULL,
@@ -21,14 +24,9 @@ export async function initDatabase() {
     );
   `
 
-  console.log('======r0:', r0)
-
-  const r1 =
-    await prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "Node_spaceId_idx" ON "Node"("spaceId");`
+  await prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "Node_spaceId_idx" ON "Node"("spaceId");`
 
   await prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "Node_type_idx" ON "Node"("type");`
 
   await prisma.$executeRaw`CREATE INDEX IF NOT EXISTS "Node_date_idx" ON "Node"("date");`
-
-  console.log('======r1:', r1)
 }
