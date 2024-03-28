@@ -6,6 +6,7 @@
     "token": "cross-env NODE_ENV=development tsx test.ts",
     "build": "yarn db:generate && tsc",
     "start": "node src/index.js",
+    "db:migrate:dev": "dotenv -e .env.development prisma migrate dev",
     "start:prod": "cross-env NODE_ENV=production node src/index.js",
     "db:generate": "dotenv -e .env.development prisma generate",
     "db:push": "dotenv -e .env.development prisma db push --skip-generate",

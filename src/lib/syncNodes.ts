@@ -4,9 +4,9 @@ require('dotenv').config({
 })
 import { format } from 'date-fns'
 import Redis from 'ioredis'
-import { INode, NodeType } from './INode'
-import { prisma } from './prisma-client'
 import { Node } from '@prisma/client'
+import { INode, NodeType } from '../types/INode'
+import { prisma } from './prisma-client'
 
 const redis = new Redis(process.env.REDIS_URL!)
 

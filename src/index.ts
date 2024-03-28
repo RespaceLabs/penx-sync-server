@@ -7,9 +7,10 @@ import Redis from 'ioredis'
 import bodyParser from 'body-parser'
 import cors from 'cors'
 import { EventEmitter } from 'events'
-import { syncNodes } from './syncNodes'
-import { prisma } from './prisma-client'
-import { decodeToken } from './decodeToken'
+import { prisma } from './lib/prisma-client'
+import { initDatabase } from './lib/initDatabase'
+import { decodeToken } from './lib/decodeToken'
+import { syncNodes } from './lib/syncNodes'
 
 type Response<T = any> = {
   success: boolean
@@ -41,6 +42,8 @@ async function main() {
   app.use(bodyParser.urlencoded({ limit: '100mb', extended: false }))
   app.use(bodyParser.json({ limit: '100mb' }))
   app.use(cors())
+
+  await initDatabase()
 
   app.get('/', async (req, res) => {
     const nodes = await prisma.node.findMany({ take: 1 })
