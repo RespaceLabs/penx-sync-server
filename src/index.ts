@@ -40,12 +40,14 @@ async function main() {
   app.use(bodyParser.json({ limit: '100mb' }))
   app.use(cors())
 
+  console.log('============process.env.NODE_ENV:', process.env.NODE_ENV)
+  console.log('========process.env.REDIS_URL:', process.env.REDIS_URL)
+  console.log('=======process.env.TOKEN:', process.env.TOKEN)
+
   await initDatabase()
 
   app.get('/', async (req, res) => {
-    const nodes = await prisma.node.findMany({ take: 1 })
     res.json({
-      nodes,
       hello: 'world',
       time: new Date(),
     })
